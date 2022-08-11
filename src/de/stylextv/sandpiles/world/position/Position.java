@@ -1,4 +1,4 @@
-package de.stylextv.sandpiles.world;
+package de.stylextv.sandpiles.world.position;
 
 public class Position {
 	

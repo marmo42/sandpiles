@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import de.stylextv.sandpiles.world.position.Position;
+
 public class World {
 	
 	private static final double AVOGADRO_CONSTANT = Math.sqrt(2 / Math.PI);
@@ -63,11 +65,7 @@ public class World {
 			}
 		}
 		
-		positionsToTopple.clear();
-		
 		applyChange();
-		
-		System.out.println(getSandPile(size / 2, size / 2));
 		
 		return toppled;
 	}
@@ -93,6 +91,8 @@ public class World {
 		for(long pos : accumulatedChange.keySet()) {
 			
 			long amount = accumulatedChange.get(pos);
+			
+			if(amount == 0) continue;
 			
 			int x = Position.getX(pos);
 			int y = Position.getY(pos);
@@ -126,12 +126,10 @@ public class World {
 		
 		sandPiles[x][y] = amount;
 		
-		if(amount >= 4) {
-			
-			long pos = Position.ofCoordinates(x, y);
-			
-			positionsToTopple.add(pos);
-		}
+		long pos = Position.ofCoordinates(x, y);
+		
+		if(amount >= 4) positionsToTopple.add(pos);
+		else positionsToTopple.remove(pos);
 	}
 	
 	private boolean isOutOfBounds(int x, int y) {
