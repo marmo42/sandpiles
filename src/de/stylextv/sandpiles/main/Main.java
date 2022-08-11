@@ -11,7 +11,7 @@ import de.stylextv.sandpiles.world.World;
 public class Main {
 	
 	public static void main(String[] args) throws IOException {
-		for(int n = 0; n < 30; n++) {
+		for(int n = 0; n <= 30; n++) {
 			
 			System.out.print("n = " + n);
 			
