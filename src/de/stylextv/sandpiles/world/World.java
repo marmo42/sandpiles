@@ -1,10 +1,6 @@
 package de.stylextv.sandpiles.world;
 
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import de.stylextv.sandpiles.world.position.Position;
 
 public class World {
 	
@@ -16,14 +12,11 @@ public class World {
 	
 	private int size;
 	
-	private long[][] sandPiles;
-	
-	private HashMap<Long, Long> accumulatedChange = new HashMap<>();
-	private HashSet<Long> positionsToTopple = new HashSet<>();
+	private int[][] sandPiles;
 	
 	public World(int size) {
 		this.size = size;
-		this.sandPiles = new long[size][size];
+		this.sandPiles = new int[size][size];
 	}
 	
 	public BufferedImage toImage() {
@@ -32,7 +25,7 @@ public class World {
 		for(int x = 0; x < size; x++) {
 			for(int y = 0; y < size; y++) {
 				
-				int amount = (int) getSandPile(x, y);
+				int amount = sandPiles[x][y];
 				
 				int color = SAND_PILE_COLORS[amount];
 				
@@ -43,122 +36,42 @@ public class World {
 		return image;
 	}
 	
-	public void stabilize() {
-		while(true) if(!update()) break;
-	}
-	
-	public boolean update() {
-		boolean toppled = false;
-		
-		for(long pos : positionsToTopple) {
-			
-			int x = Position.getX(pos);
-			int y = Position.getY(pos);
-			
-			long amount = getSandPile(x, y);
-			
-			if(amount >= 4) {
-				
-				toppleSandPile(x, y);
-				
-				toppled = true;
-			}
-		}
-		
-		applyChange();
-		
-		return toppled;
-	}
-	
-	private void toppleSandPile(int x, int y) {
-		changeSandPile(x, y, -4);
-		
-		changeSandPile(x - 1, y, 1);
-		changeSandPile(x + 1, y, 1);
-		changeSandPile(x, y - 1, 1);
-		changeSandPile(x, y + 1, 1);
-	}
-	
-	private void changeSandPile(int x, int y, long amount) {
-		long pos = Position.ofCoordinates(x, y);
-		
-		long l = accumulatedChange.getOrDefault(pos, 0l);
-		
-		accumulatedChange.put(pos, l + amount);
-	}
-	
-	private void applyChange() {
-		for(long pos : accumulatedChange.keySet()) {
-			
-			long amount = accumulatedChange.get(pos);
-			
-			if(amount == 0) continue;
-			
-			int x = Position.getX(pos);
-			int y = Position.getY(pos);
-			
-			long l = getSandPile(x, y);
-			
-			setSandPile(x, y, l + amount);
-		}
-		
-		accumulatedChange.clear();
-	}
-	
-	public void decreaseSandPile(int x, int y, long amount) {
-		increaseSandPile(x, y, -amount);
-	}
-	
 	public void increaseSandPile(int x, int y, long amount) {
-		long l = getSandPile(x, y);
-		
-		setSandPile(x, y, l + amount);
+		for(int i = 0; i < amount; i++) {
+			
+			increaseSandPile(x, y);
+		}
 	}
 	
-	public long getSandPile(int x, int y) {
-		if(isOutOfBounds(x, y)) return 0;
-		
-		return sandPiles[x][y];
-	}
-	
-	public void setSandPile(int x, int y, long amount) {
+	public void increaseSandPile(int x, int y) {
 		if(isOutOfBounds(x, y)) return;
 		
-		sandPiles[x][y] = amount;
+		int amount = sandPiles[x][y];
 		
-		long pos = Position.ofCoordinates(x, y);
+		if(amount < 3) {
+			
+			sandPiles[x][y]++;
+			
+			return;
+		}
 		
-		if(amount >= 4) positionsToTopple.add(pos);
-		else positionsToTopple.remove(pos);
+		sandPiles[x][y] -= 3;
+		
+		increaseSandPile(x - 1, y);
+		increaseSandPile(x + 1, y);
+		increaseSandPile(x, y - 1);
+		increaseSandPile(x, y + 1);
 	}
 	
 	private boolean isOutOfBounds(int x, int y) {
 		return x < 0 || y < 0 || x >= size || y >= size;
 	}
 	
-	@Override
-	public String toString() {
-		String s = "";
-		
-		for(int y = 0; y < size; y++) {
-			for(int x = 0; x < size; x++) {
-				
-				long amount = getSandPile(x, y);
-				
-				s += amount + " ";
-			}
-			
-			s += "\n";
-		}
-		
-		return s;
-	}
-	
 	public int getSize() {
 		return size;
 	}
 	
-	public long[][] getSandPiles() {
+	public int[][] getSandPiles() {
 		return sandPiles;
 	}
 	
@@ -169,7 +82,7 @@ public class World {
 		
 		int pos = size / 2;
 		
-		world.setSandPile(pos, pos, amount);
+		world.increaseSandPile(pos, pos, amount);
 		
 		return world;
 	}
