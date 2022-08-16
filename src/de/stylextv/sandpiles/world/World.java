@@ -6,17 +6,17 @@ public class World {
 	
 	private static final double AVOGADRO_CONSTANT = Math.sqrt(2 / Math.PI);
 	
-	private static final int[] SAND_PILE_COLORS = new int[] {
+	private static final int[] SANDPILE_COLORS = new int[] {
 			0xFFFFFF, 0x408000, 0x7608AA, 0xFFD600
 	};
 	
 	private int size;
 	
-	private int[][] sandPiles;
+	private byte[][] sandpiles;
 	
 	public World(int size) {
 		this.size = size;
-		this.sandPiles = new int[size][size];
+		this.sandpiles = new byte[size][size];
 	}
 	
 	public BufferedImage toImage() {
@@ -25,9 +25,9 @@ public class World {
 		for(int x = 0; x < size; x++) {
 			for(int y = 0; y < size; y++) {
 				
-				int amount = sandPiles[x][y];
+				byte amount = sandpiles[x][y];
 				
-				int color = SAND_PILE_COLORS[amount];
+				int color = SANDPILE_COLORS[amount];
 				
 				image.setRGB(x, y, color);
 			}
@@ -36,31 +36,31 @@ public class World {
 		return image;
 	}
 	
-	public void increaseSandPile(int x, int y, long amount) {
+	public void increaseSandpile(int x, int y, long amount) {
 		for(int i = 0; i < amount; i++) {
 			
-			increaseSandPile(x, y);
+			increaseSandpile(x, y);
 		}
 	}
 	
-	public void increaseSandPile(int x, int y) {
+	public void increaseSandpile(int x, int y) {
 		if(isOutOfBounds(x, y)) return;
 		
-		int amount = sandPiles[x][y];
+		byte amount = sandpiles[x][y];
 		
-		if(amount < 3) {
+		if(amount == 3) {
 			
-			sandPiles[x][y]++;
+			sandpiles[x][y] = 0;
+			
+			increaseSandpile(x - 1, y);
+			increaseSandpile(x + 1, y);
+			increaseSandpile(x, y - 1);
+			increaseSandpile(x, y + 1);
 			
 			return;
 		}
 		
-		sandPiles[x][y] -= 3;
-		
-		increaseSandPile(x - 1, y);
-		increaseSandPile(x + 1, y);
-		increaseSandPile(x, y - 1);
-		increaseSandPile(x, y + 1);
+		sandpiles[x][y]++;
 	}
 	
 	private boolean isOutOfBounds(int x, int y) {
@@ -71,8 +71,8 @@ public class World {
 		return size;
 	}
 	
-	public int[][] getSandPiles() {
-		return sandPiles;
+	public byte[][] getSandpiles() {
+		return sandpiles;
 	}
 	
 	public static World ofSeed(long amount) {
@@ -82,7 +82,7 @@ public class World {
 		
 		int pos = size / 2;
 		
-		world.increaseSandPile(pos, pos, amount);
+		world.increaseSandpile(pos, pos, amount);
 		
 		return world;
 	}
